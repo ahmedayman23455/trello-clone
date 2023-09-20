@@ -23,9 +23,8 @@ export default function Board() {
 
   const handleOnDragEnd = (result: DropResult) => {
     const { destination, source, type } = result;
-    // console.log(destination);
-    // console.log(source);
-    // console.log(type);
+
+    // check if user dragged car outside of board
     if (!destination) return;
 
     // handle column drag
@@ -34,12 +33,10 @@ export default function Board() {
       const [removed] = entries.splice(source.index, 1);
       entries.splice(destination.index, 0, removed);
       const rearrangedColumns = new Map(entries);
-      setBoardState({
-        ...board,
-        columns: rearrangedColumns,
-      });
+      setBoardState({ ...board, columns: rearrangedColumns });
     }
 
+    // This step is needed as the inderxes are stored as numbers 0,1,2 etx. instead of id's with DND Library
     const columns = Array.from(board.columns);
     const startColIndex = columns[Number(source.droppableId)];
     const finishColIndex = columns[Number(destination.droppableId)];
@@ -59,23 +56,20 @@ export default function Board() {
     if (source.index === destination.index && startCol === finishCol) return;
 
     const newTodos = startCol.todos;
+
     const [todoMoved] = newTodos.splice(source.index, 1);
 
     if (startCol.id === finishCol.id) {
-      // Same column task drag
+      // same column task drag
       newTodos.splice(destination.index, 0, todoMoved);
-      const newCol = {
-        id: startCol.id,
-        todos: newTodos,
-      };
+      const newCol = { id: startCol.id, todos: newTodos };
       const newColumns = new Map(board.columns);
       newColumns.set(startCol.id, newCol);
       setBoardState({ ...board, columns: newColumns });
     } else {
-      // different column dragging
+      // dragging to another column
       const finishTodos = Array.from(finishCol.todos);
       finishTodos.splice(destination.index, 0, todoMoved);
-
       const newColumns = new Map(board.columns);
       const newCol = {
         id: startCol.id,
@@ -89,9 +83,6 @@ export default function Board() {
       });
 
       // update in db
-      updateTodoInDB(todoMoved, finishCol.id);
-      // updateTodoInDB(todoMoved, finishCol.id);
-
       setBoardState({ ...board, columns: newColumns });
     }
   };
